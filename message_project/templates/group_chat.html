@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+    <style>
+        /* Add your CSS styling here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-log {
+            flex-grow: 1;
+            padding: 20px;
+            border-bottom: 1px solid #ccc;
+            overflow-y: auto;
+        }
+        .chat-log ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .chat-log li {
+            margin-bottom: 10px;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+        }
+        .chat-input input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .chat-input button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-log">
+        <ul>
+        {% for msg in group_message %}
+            <li>{{msg.sender}} : {{msg.content}}</li>
+        {% endfor %}
+        </ul>    
+        <ul id="chat-log">
+            <!-- Messages will be appended here -->
+        </ul>
+    </div>
+    <div class="chat-input">
+        <input id="chat-message-input" type="text" placeholder="Type a message...">
+        <button id="chat-message-submit">Send</button>
+    </div>
+</div>
+
+<script>
+const username = "{{ username }}";
+const groupName = "{{ group_name }}";
+
+// For group chat
+const groupSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/group/' + groupName + '/'
+);
+
+groupSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const chatLog = document.querySelector('#chat-log');
+    const messageElement = document.createElement('li');
+    messageElement.textContent = `${data.sender}: ${data.message}`;
+    chatLog.appendChild(messageElement);
+    chatLog.scrollTop = chatLog.scrollHeight;
+};
+
+groupSocket.onclose = function(e) {
+    console.error('Group chat socket closed unexpectedly');
+};
+
+document.querySelector('#chat-message-input').focus();
+document.querySelector('#chat-message-input').onkeyup = function(e) {
+    if (e.keyCode === 13) {
+        document.querySelector('#chat-message-submit').click();
+    }
+};
+
+document.querySelector('#chat-message-submit').onclick = function(e) {
+    const messageInputDom = document.querySelector('#chat-message-input');
+    const message = messageInputDom.value;
+    groupSocket.send(JSON.stringify({
+        'message': message,
+        'username': username
+    }));
+    messageInputDom.value = '';
+};
+</script>
+
+</body>
+</html>
