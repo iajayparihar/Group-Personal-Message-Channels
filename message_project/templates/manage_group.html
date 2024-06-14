@@ -1,9 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Manage Group - {{ group.name }}</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}
+Manage Group - {{ group.name }}
+{% endblock title %}
+    
+
+{% block body %}
+        
     <h2>Manage Group: {{ group.name }}</h2>
     <h3>Group Members</h3>
     <ul>
@@ -11,9 +14,10 @@
         <li>{{ member.username }} 
             <form method="POST" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" name="remove_member" value="{{ member.username }}">Remove</button>
+                <button type="submit" class="btn btn-outline-warning" name="remove_member" value="{{ member.username }}">Remove</button> 
             </form>
         </li>
+        <br>
         {% endfor %}
     </ul>
 
@@ -25,13 +29,13 @@
                 <option value="{{ user.username }}">{{ user.username }}</option>
             {% endfor %}
         </select>
-        <button type="submit" name="add_member">Add Member</button>
+        <button type="submit" class="btn btn-outline-primary" name="add_member">Add Member</button>
     </form>
 
     <h3>Delete Group</h3>
     <form method="POST">
         {% csrf_token %}
-        <button type="submit" name="delete_group">Delete Group</button>
+        <button type="submit" class="btn btn-outline-danger" name="delete_group">Delete Group</button>
     </form>
 
     <div>
@@ -39,5 +43,5 @@
             <p>{{ message }}</p>
         {% endfor %}
     </div>
-</body>
-</html>
+    
+{% endblock body %}
