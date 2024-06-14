@@ -68,20 +68,32 @@ Personal Chat
         .chat-input button:hover {
             background-color: #218838;
         }
+        .list-style li{
+            border : 2px solid black;
+            border-radius: 20px;
+            margin: 10px 0px;
+            padding: 5px 15px;      
+            word-wrap: break-word;
+            word-break: break-all;       
+        }
     </style>
 
 <h2>User : {{username}} <br>
 Send to : {{ friend_username }} </h2>
 <div class="chat-container">
     <div class="chat-log">
-        <ul>
+        <ul class='list-style'>
             
             {% for msg in messages %}
-            <li>{{msg.sender}}: {{msg.content}}</li>
+            {% if msg.sender == request.user %}
+                    <li style='text-align: right;'>{{msg.sender}} : {{msg.content}}</li>
+                    {% else %}
+                    <li>{{msg.sender}} : {{msg.content}}</li>
+                    {% endif %}
             {% endfor %}
                 
         </ul>
-        <ul id="chat-log">
+        <ul id="chat-log" class='list-style'>
             <!-- Messages will be appended here -->
         </ul>
     </div>
@@ -94,7 +106,7 @@ Send to : {{ friend_username }} </h2>
 <script>
 const username = "{{ username }}";
 const friendUsername = "{{ friend_username }}";
-
+const currentUser = "{{request.user}}";
 // For personal chat
 const personalSocket = new WebSocket(
     'ws://' + window.location.host + '/ws/personal/' + friendUsername + '/'
@@ -105,8 +117,10 @@ personalSocket.onmessage = function(e) {
     const chatLog = document.querySelector('#chat-log');
     const messageElement = document.createElement('li');
     messageElement.textContent = `${data.sender}: ${data.message}`;
+    if (data.sender === currentUser) {
+        messageElement.style.textAlign = 'right';
+    }
     chatLog.appendChild(messageElement);
-    console.log(messageElement)
     chatLog.scrollTop = chatLog.scrollHeight;
 };
 

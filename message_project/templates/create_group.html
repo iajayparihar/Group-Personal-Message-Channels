@@ -1,29 +1,81 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Group</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}
+Create Group
+{% endblock title %}
+
+{% block body %}
+        
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .messages {
+            margin-top: 20px;
+        }
+
+        .messages p {
+            background-color: #ffdddd;
+            padding: 10px;
+            border-left: 6px solid #f44336;
+            margin-bottom: 10px;
+        }
+    </style>
+
     <h2>Create a New Group</h2>
     <form method="POST">
         {% csrf_token %}
         <label for="group_name">Group Name:</label>
         <input type="text" id="group_name" name="group_name" required>
-        <br>
         <label for="members">Select Members:</label>
-        <br>
         <select id="members" name="members" multiple>
             {% for user in users %}
                 <option value="{{ user.id }}">{{ user.username }}</option>
             {% endfor %}
         </select>
-        <br>
         <button type="submit">Create Group</button>
     </form>
-    <div>
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-    </div>
-</body>
-</html>
+    {% endblock body %}

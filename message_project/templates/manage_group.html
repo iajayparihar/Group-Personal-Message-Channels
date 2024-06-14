@@ -4,44 +4,141 @@
 Manage Group - {{ group.name }}
 {% endblock title %}
     
-
 {% block body %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2, h3 {
+            color: #333;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        form {
+            display: inline;
+        }
+
+        button {
+            margin-left: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-outline-warning {
+            color: #856404;
+            background-color: transparent;
+            border: 1px solid #856404;
+        }
+
+        .btn-outline-warning:hover {
+            background-color: #856404;
+            color: white;
+        }
+
+        .btn-outline-primary {
+            color: #0056b3;
+            background-color: transparent;
+            border: 1px solid #0056b3;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        .btn-outline-danger {
+            color: #dc3545;
+            background-color: transparent;
+            border: 1px solid #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .messages p {
+            background-color: #ffdddd;
+            padding: 10px;
+            border-left: 6px solid #f44336;
+            margin-bottom: 10px;
+        }
+    </style>
         
-    <h2>Manage Group: {{ group.name }}</h2>
-    <h3>Group Members</h3>
-    <ul>
-        {% for member in group_members %}
-        <li>{{ member.username }} 
-            <form method="POST" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-warning" name="remove_member" value="{{ member.username }}">Remove</button> 
-            </form>
-        </li>
-        <br>
-        {% endfor %}
-    </ul>
-
-    <h3>Add New Member</h3>
-    <form method="POST">
-        {% csrf_token %}
-        <select name="new_member">
-            {% for user in users %}
-                <option value="{{ user.username }}">{{ user.username }}</option>
+    <div class="container">
+        <h2>Manage Group: {{ group.name }}</h2>
+        <h3>Group Members</h3>
+        <ul>
+            {% for member in group_members %}
+            <li>{{ member.username }} 
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-warning" name="remove_member" value="{{ member.username }}">Remove</button> 
+                </form>
+            </li>
             {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-outline-primary" name="add_member">Add Member</button>
-    </form>
+        </ul>
 
-    <h3>Delete Group</h3>
-    <form method="POST">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-outline-danger" name="delete_group">Delete Group</button>
-    </form>
+        <h3>Add New Member</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <select name="new_member">
+                {% for user in users %}
+                    <option value="{{ user.username }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-outline-primary" name="add_member">Add Member</button>
+        </form>
 
-    <div>
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
+        <h3>Delete Group</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger" name="delete_group">Delete Group</button>
+        </form>
+
+        <div class="messages">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
     </div>
-    
 {% endblock body %}
