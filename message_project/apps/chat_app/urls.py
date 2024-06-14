@@ -10,6 +10,8 @@ urlpatterns = [
     path('logout/', views.user_logout, name='user_logout'),
     path('register/', views.user_register, name='user_register'),
 
-     path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('create_group/', views.create_group, name='create_group'),
+    path('manage_group/<str:group_name>/', views.manage_group, name='manage_group'),
 ]
     

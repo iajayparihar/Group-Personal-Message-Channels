@@ -5,10 +5,16 @@
 </head>
 <body>
     <h2>Welcome, {{ username }}</h2>
+    <a href="{% url 'user_logout' %}">Logout</a>
+    <a href="{% url 'create_group' %}">Create New Group</a>
+    
     <h3>Your Groups</h3>
     <ul>
         {% for group in groups %}
             <li><a href="{% url 'group_chat' group.name %}">{{ group.name }}</a></li>
+            {% if group.creator == request.user %}
+                    (<a href="{% url 'manage_group' group.name %}">Manage</a>)
+                {% endif %}
         {% endfor %}
     </ul>
 

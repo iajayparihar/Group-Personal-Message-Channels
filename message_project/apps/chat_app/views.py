@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from chat_app.models import Group, GroupMessage, PersonalMessage
@@ -8,18 +8,20 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def group_chat(request, group_name):
-    group = Group.objects.get(name=group_name)
+    group = get_object_or_404(Group, name=group_name)
     group_messages = GroupMessage.objects.filter(group=group.pk)
+    group_members = group.members.all()
 
     return render(request, 'group_chat.html', {
         'username': request.user.username,
         'group_name': group.name,
         'group_message': group_messages,
+        'group_members': group_members,
     })
 
 @login_required
 def personal_chat(request, friend_username):
-    friend = User.objects.get(username=friend_username)
+    friend = get_object_or_404(User, username=friend_username)
     messages = PersonalMessage.objects.filter(
         Q(sender=request.user, receiver=friend) | Q(sender=friend, receiver=request.user)
     ).order_by('timestamp')
@@ -72,5 +74,54 @@ def dashboard(request):
     return render(request, 'dashboard.html', {
         'username': request.user.username,
         'groups': user_groups,
+        'users': users,
+    })
+
+@login_required
+def create_group(request):
+    if request.method == 'POST':
+        group_name = request.POST['group_name']
+        members = request.POST.getlist('members')
+        group = Group.objects.create(name=group_name, creator=request.user)
+        group.members.add(request.user)  # Add the creator to the group
+        group.members.add(*members)  # Add selected members to the group
+        group.save()
+        messages.success(request, 'Group created successfully.')
+        return redirect('dashboard')
+    
+    users = User.objects.exclude(username=request.user.username)
+    return render(request, 'create_group.html', {
+        'users': users,
+    })
+
+@login_required
+def manage_group(request, group_name):
+    group = get_object_or_404(Group, name=group_name)
+    if group.creator != request.user:
+        messages.error(request, 'You do not have permission to manage this group.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        if 'add_member' in request.POST:
+            new_member_username = request.POST['new_member']
+            new_member = User.objects.get(username=new_member_username)
+            group.members.add(new_member)
+            messages.success(request, f'{new_member_username} added to the group.')
+        elif 'remove_member' in request.POST:
+            remove_member_username = request.POST['remove_member']
+            remove_member = User.objects.get(username=remove_member_username)
+            group.members.remove(remove_member)
+            messages.success(request, f'{remove_member_username} removed from the group.')
+        elif 'delete_group' in request.POST:
+            group.delete()
+            messages.success(request, 'Group deleted successfully.')
+            return redirect('dashboard')
+
+    group_members = group.members.all()
+    users = User.objects.exclude(username=request.user.username).exclude(pk__in=group_members)
+    
+    return render(request, 'manage_group.html', {
+        'group': group,
+        'group_members': group_members,
         'users': users,
     })
