@@ -13,5 +13,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('create_group/', views.create_group, name='create_group'),
     path('manage_group/<str:group_name>/', views.manage_group, name='manage_group'),
+
+    path('call/',views.call, name='call'),
 ]
     

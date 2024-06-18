@@ -3,11 +3,9 @@
 {% block title %}
 Personal Chat
 {% endblock title %}
-    
 
 {% block body %}
     <style>
-        /* Add your CSS styling here */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -77,18 +75,84 @@ Personal Chat
 
 <h2>User : {{username}} <br>
 Send to : {{ friend_username }} </h2>
+<button class="dialActionButton" onclick="initiateCall()">Call</button>
+<div class="call">
+    <div>
+        <div id="userInfo">
+            <div style="display: flex; flex-direction: column; align-items: center; width: 300px;">
+                <h1>Hello, <span id="nameHere">{{username}}</span></h1>
+            </div>
+        </div>
+        <div id="call">
+            <div class="dialWrapper">
+                <div class="dialNumpadHWrapper">
+                    <div class="dialNumber">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="answer">
+            <div class="incomingWrapper">
+                <div class="itemWrapper">
+                    <h2>Incoming Call</h2>
+                </div>
+                <div class="itemWrapper">
+                    <img id="profileImageA" style="padding: 30px; width: 140px; height: 140px;" src="/static/profile.png" alt="img not found">
+                </div>
+                <div class="itemWrapper">
+                    <h2 style="line-height: 0px;"><span id="callerName"></span></h2>
+                </div>
+                <div class="itemWrapper" style="display: flex; flex-direction: row; margin-bottom: 20px;">
+                    <button class="actionButton" onclick="answer()">Answer</button>
+                </div>
+            </div>
+        </div>
+        <div id="calling">
+            <div class="incomingWrapper">
+                <div class="itemWrapper">
+                    <h2>Calling</h2>
+                </div>
+                <div class="itemWrapper">
+                    <img id="profileImageCA" style="padding: 30px; width: 140px; height: 140px;" src="/static/profile.png" alt="">
+                </div>
+                <div class="itemWrapper">
+                    <h3 style="line-height: 0px;"><span id="otherUserNameCA"></span></h3>
+                </div>
+            </div>
+        </div>
+        <div id="inCall">
+            <div class="incomingWrapper">
+                <div class="itemWrapper">
+                    <h3>On Call With</h3>
+                    <h2 style="line-height: 0px;"><span id="otherUserNameC"></span></h2>
+                </div>
+                <div class="itemWrapper" style="display: flex; flex-direction: row; margin-bottom: 20px;">
+                    <button class="actionButton" onclick="hangUp()">Hang Up</button>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div id="videos">
+            <div style="position:absolute; top:0; right:0; padding-right: 20px; padding-top: 20px">
+                <video width="100px" id="localVideo" autoplay muted playsinline></video>
+            </div>
+            <div id="remoteVideoDiv">
+                <video style="width: 500px;" id="remoteVideo" autoplay playsinline></video>
+            </div>
+        </div>
+        <div style="flex-grow: 1;"></div>
+    </div>
+</div>
 <div class="chat-container">
     <div class="chat-log">
         <ul class='list-style'>
-            
             {% for msg in messages %}
             {% if msg.sender == request.user %}
-                    <li style='text-align: right;'>{{msg.sender}} : {{msg.content}}</li>
-                    {% else %}
-                    <li>{{msg.sender}} : {{msg.content}}</li>
-                    {% endif %}
+                <li style='text-align: right;'>{{msg.sender}} : {{msg.content}}</li>
+            {% else %}
+                <li>{{msg.sender}} : {{msg.content}}</li>
+            {% endif %}
             {% endfor %}
-                
         </ul>
         <ul id="chat-log" class='list-style'>
             <!-- Messages will be appended here -->
@@ -144,5 +208,242 @@ document.querySelector('#chat-message-submit').onclick = function(e) {
     }));
     messageInputDom.value = '';
 };
+</script>
+
+<script>
+    let myName = "{{ username }}";
+    let otherUser = "{{ friend_username }}";
+    let localStream;
+    let remoteStream;
+    let peerConnection;
+    let remoteRTCMessage;
+    let iceCandidatesFromCaller = [];
+</script>
+<script>
+    function connectSocket() {
+        callSocket = new WebSocket('ws://' + window.location.host + '/ws/call/');
+        callSocket.onmessage = (e) => {
+            let response = JSON.parse(e.data);
+            let type = response.type;
+            if (type === 'connection') {
+                console.log(response.data.message);
+            } else if (type === 'call_received') {
+                onNewCall(response.data);
+            } else if (type === 'call_answered') {
+                onCallAnswered(response.data);
+            } else if (type === 'ICEcandidate') {
+                onICECandidate(response.data);
+            } else if (type === 'call_ended') {
+                onCallEnded();
+            }
+        };
+        callSocket.onopen = function(e) {
+            console.log('calling WebSocket connection for call established.');
+        };
+    }
+
+    function onNewCall(data) {
+        otherUser = data.caller;
+        remoteRTCMessage = data.rtcMessage;
+        document.getElementById("callerName").innerHTML = otherUser;
+        document.getElementById("call").style.display = "none";
+        document.getElementById("answer").style.display = "block";
+    }
+
+    function onCallAnswered(data) {
+        remoteRTCMessage = data.rtcMessage;
+        peerConnection.setRemoteDescription(new RTCSessionDescription(remoteRTCMessage));
+        document.getElementById("calling").style.display = "none";
+        callProgress();
+    }
+
+    function onICECandidate(data) {
+        let message = data.rtcMessage;
+        let candidate = new RTCIceCandidate({
+            sdpMLineIndex: message.label,
+            candidate: message.candidate
+        });
+        if (peerConnection) {
+            peerConnection.addIceCandidate(candidate);
+        } else {
+            iceCandidatesFromCaller.push(candidate);
+        }
+    }
+
+    function sendCall(data) {
+        callSocket.send(JSON.stringify({
+            type: 'call',
+            data
+        }));
+        document.getElementById("call").style.display = "none";
+        document.getElementById("calling").style.display = "block";
+    }
+
+    function answerCall(data) {
+        callSocket.send(JSON.stringify({
+            type: 'answer_call',
+            data
+        }));
+        callProgress();
+    }
+
+    function sendICEcandidate(data) {
+        callSocket.send(JSON.stringify({
+            type: 'ICEcandidate',
+            data
+        }));
+    }
+
+    function hangUp() {
+        callSocket.send(JSON.stringify({
+            type: 'end_call',
+            data: {
+                user: otherUser
+            }
+        }));
+        onCallEnded();
+    }
+
+    function onCallEnded() {
+        if (peerConnection) {
+            peerConnection.close();
+            peerConnection = null;
+        }
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        remoteStream = null;
+        document.getElementById("localVideo").srcObject = null;
+        document.getElementById("remoteVideo").srcObject = null;
+        document.getElementById("inCall").style.display = "none";
+        document.getElementById("answer").style.display = "none";
+        document.getElementById("calling").style.display = "none";
+        document.getElementById("videos").style.display = "none";
+        document.getElementById("call").style.display = "block";
+    }
+
+    let pcConfig = {
+        "iceServers": [
+            { "urls": "stun:stun.l.google.com:19302" },
+            {
+                "urls": "turn:YOUR_TURN_SERVER",
+                "username": "YOUR_USERNAME",
+                "credential": "YOUR_CREDENTIAL"
+            }
+        ]
+    };
+
+    let sdpConstraints = {
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true
+    };
+
+    function beReady() {
+        return navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: true
+        }).then(stream => {
+            localStream = stream;
+            document.getElementById("localVideo").srcObject = stream;
+            return createConnectionAndAddStream();
+        }).catch(function (e) {
+            alert('getUserMedia() error: ' + e.name);
+        });
+    }
+
+    function createConnectionAndAddStream() {
+        createPeerConnection();
+        peerConnection.addStream(localStream);
+        return true;
+    }
+
+    function processCall(userName) {
+        peerConnection.createOffer().then(sessionDescription => {
+            peerConnection.setLocalDescription(sessionDescription);
+            sendCall({
+                name: userName,
+                rtcMessage: sessionDescription
+            });
+        }).catch(error => {
+            console.error("Error creating offer: ", error);
+        });
+    }
+
+    function processAccept() {
+        peerConnection.setRemoteDescription(new RTCSessionDescription(remoteRTCMessage)).then(() => {
+            return peerConnection.createAnswer();
+        }).then(sessionDescription => {
+            peerConnection.setLocalDescription(sessionDescription);
+            answerCall({
+                caller: otherUser,
+                rtcMessage: sessionDescription
+            });
+        }).catch(error => {
+            console.error("Error creating answer: ", error);
+        });
+    }
+
+    function createPeerConnection() {
+        try {
+            peerConnection = new RTCPeerConnection(pcConfig);
+            peerConnection.onicecandidate = handleIceCandidate;
+            peerConnection.onaddstream = handleRemoteStreamAdded;
+            peerConnection.onremovestream = handleRemoteStreamRemoved;
+            return;
+        } catch (e) {
+            alert('Cannot create RTCPeerConnection object.');
+            return;
+        }
+    }
+
+    function handleIceCandidate(event) {
+        if (event.candidate) {
+            sendICEcandidate({
+                user: otherUser,
+                rtcMessage: {
+                    label: event.candidate.sdpMLineIndex,
+                    id: event.candidate.sdpMid,
+                    candidate: event.candidate.candidate
+                }
+            });
+        } else {
+            console.log('End of candidates.');
+        }
+    }
+
+    function handleRemoteStreamAdded(event) {
+        remoteStream = event.stream;
+        document.getElementById("remoteVideo").srcObject = remoteStream;
+    }
+
+    function handleRemoteStreamRemoved(event) {
+        document.getElementById("remoteVideo").srcObject = null;
+        document.getElementById("localVideo").srcObject = null;
+    }
+
+    function initiateCall() {
+        beReady().then(() => processCall(otherUser));
+    }
+
+    function answer() {
+        beReady().then(() => processAccept());
+    }
+
+    function callProgress() {
+        document.getElementById("inCall").style.display = "block";
+        document.getElementById("videos").style.display = "block";
+        document.getElementById("answer").style.display = "none"; // Hide answer button
+    }
+
+    // Connect the WebSocket immediately when the script runs
+    connectSocket();
+</script>
+<script>
+    document.getElementById("call").style.display = "none";
+    document.getElementById("userInfo").style.display = "none";
+    document.getElementById("answer").style.display = "none";
+    document.getElementById("inCall").style.display = "none";
+    document.getElementById("calling").style.display = "none";
+    document.getElementById("videos").style.display = "none";
 </script>
 {% endblock body %}

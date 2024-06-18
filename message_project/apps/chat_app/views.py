@@ -6,6 +6,9 @@ from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
+def call(request):
+    return render(request,'call.html')
+
 @login_required
 def group_chat(request, group_name):
     group = get_object_or_404(Group, name=group_name)
