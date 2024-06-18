@@ -73,96 +73,115 @@ Personal Chat
         }
     </style>
 
-<h2>User : {{username}} <br>
-Send to : {{ friend_username }} </h2>
-<button class="dialActionButton" onclick="initiateCall()">Call</button>
-<div class="call">
-    <div>
-        <div id="userInfo">
-            <div style="display: flex; flex-direction: column; align-items: center; width: 300px;">
-                <h1>Hello, <span id="nameHere">{{username}}</span></h1>
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <h2>User : {{username}} <br>
+            Send to : {{ friend_username }} </h2>
+            
+            <div class="chat-container">
+                <div class="chat-log">
+                    <ul class='list-style'>
+                        {% for msg in messages %}
+                        {% if msg.sender == request.user %}
+                            <li style='text-align: right;'>{{msg.sender}} : {{msg.content}}</li>
+                        {% else %}
+                            <li>{{msg.sender}} : {{msg.content}}</li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <ul id="chat-log" class='list-style'>
+                        <!-- Messages will be appended here -->
+                    </ul>
+                </div>
+                <div class="chat-input">
+                    <input id="chat-message-input" type="text" placeholder="Type a message...">
+                    <button id="chat-message-submit">Send</button>
+                </div>
             </div>
         </div>
-        <div id="call">
-            <div class="dialWrapper">
-                <div class="dialNumpadHWrapper">
-                    <div class="dialNumber">
+        <div class="col-6">
+            <button class="dialActionButton" onclick="initiateCall()"><img width="64" height="64" src="https://img.icons8.com/nolan/64/phone-disconnected.png" alt="phone-disconnected" /></button>
+            <div class="call">
+                <div>
+                    <div id="userInfo">
+                        <div style="display: flex; flex-direction: column; align-items: center; width: 300px;">
+                            <h1>Hello, <span id="nameHere">{{username}}</span></h1>
+                        </div>
                     </div>
+                    <div id="call">
+                        <div class="dialWrapper">
+                            <div class="dialNumpadHWrapper">
+                                <div class="dialNumber">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="answer">
+                        <div class="incomingWrapper">
+                            <div class="itemWrapper">
+                                <h2>Incoming Call</h2>
+                            </div>
+                            <div class="itemWrapper">
+                            <!--    <img id="profileImageA" style="padding: 30px; width: 140px; height: 140px;" src="/static/profile.png" alt="img not found">  -->
+                                <img width="100" height="100" src="https://img.icons8.com/ios-filled/100/user.png" alt="user"/>
+                            </div>
+                            <br>
+                            <div class="itemWrapper">
+                                <h2 style="line-height: 0px;"><span id="callerName"></span></h2>
+                            </div>
+                            <br>
+                            <div class="itemWrapper" style="display: flex; flex-direction: row; margin-bottom: 20px;">
+                                <button class="actionButton btn btn-primary" onclick="answer()">Answer</button>
+                                <button class="actionButton btn btn-danger" onclick="hangUp()">Hang Up</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="calling">
+                        <div class="incomingWrapper">
+                            <div class="itemWrapper">
+                                <h2>Calling</h2>
+                            </div>
+                            <div class="itemWrapper">
+                            <!--    <img id="profileImageCA" style="padding: 30px; width: 140px; height: 140px;" src="/static/profile.png" alt=""> -->
+                                <img width="100" height="100" src="https://img.icons8.com/ios-filled/100/user.png" alt="user"/>
+                                <button class="actionButton btn btn-danger" onclick="hangUp()">Hang Up</button>
+                            </div>
+                            <div class="itemWrapper">
+                                <h3 style="line-height: 0px;"><span id="otherUserNameCA"></span></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="inCall">
+                        <div class="incomingWrapper">
+                            <div class="itemWrapper">
+                                <h3>On Call With</h3>
+                                <h2 style="line-height: 0px;"><span id="otherUserNameC"></span></h2>
+                            </div>
+                            <div class="itemWrapper" style="display: flex; flex-direction: row; margin-bottom: 20px;">
+                                <button class="actionButton btn btn-danger" onclick="hangUp()">Hang Up</button>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div id="videos">
+                        <div style="position:absolute; top:0; right:0; padding-right: 20px; padding-top: 20px">
+                            <video width="100px" id="localVideo" autoplay muted playsinline></video>
+                        </div>
+                        <div id="remoteVideoDiv">
+                            <video style="width: 500px;" id="remoteVideo" autoplay playsinline></video>
+                        </div>
+                    </div>
+                    <div style="flex-grow: 1;"></div>
                 </div>
             </div>
         </div>
-        <div id="answer">
-            <div class="incomingWrapper">
-                <div class="itemWrapper">
-                    <h2>Incoming Call</h2>
-                </div>
-                <div class="itemWrapper">
-                    <img id="profileImageA" style="padding: 30px; width: 140px; height: 140px;" src="/static/profile.png" alt="img not found">
-                </div>
-                <div class="itemWrapper">
-                    <h2 style="line-height: 0px;"><span id="callerName"></span></h2>
-                </div>
-                <div class="itemWrapper" style="display: flex; flex-direction: row; margin-bottom: 20px;">
-                    <button class="actionButton" onclick="answer()">Answer</button>
-                </div>
-            </div>
-        </div>
-        <div id="calling">
-            <div class="incomingWrapper">
-                <div class="itemWrapper">
-                    <h2>Calling</h2>
-                </div>
-                <div class="itemWrapper">
-                    <img id="profileImageCA" style="padding: 30px; width: 140px; height: 140px;" src="/static/profile.png" alt="">
-                </div>
-                <div class="itemWrapper">
-                    <h3 style="line-height: 0px;"><span id="otherUserNameCA"></span></h3>
-                </div>
-            </div>
-        </div>
-        <div id="inCall">
-            <div class="incomingWrapper">
-                <div class="itemWrapper">
-                    <h3>On Call With</h3>
-                    <h2 style="line-height: 0px;"><span id="otherUserNameC"></span></h2>
-                </div>
-                <div class="itemWrapper" style="display: flex; flex-direction: row; margin-bottom: 20px;">
-                    <button class="actionButton" onclick="hangUp()">Hang Up</button>
-                </div>
-            </div>
-        </div>
-        <br>
-        <div id="videos">
-            <div style="position:absolute; top:0; right:0; padding-right: 20px; padding-top: 20px">
-                <video width="100px" id="localVideo" autoplay muted playsinline></video>
-            </div>
-            <div id="remoteVideoDiv">
-                <video style="width: 500px;" id="remoteVideo" autoplay playsinline></video>
-            </div>
-        </div>
-        <div style="flex-grow: 1;"></div>
     </div>
 </div>
-<div class="chat-container">
-    <div class="chat-log">
-        <ul class='list-style'>
-            {% for msg in messages %}
-            {% if msg.sender == request.user %}
-                <li style='text-align: right;'>{{msg.sender}} : {{msg.content}}</li>
-            {% else %}
-                <li>{{msg.sender}} : {{msg.content}}</li>
-            {% endif %}
-            {% endfor %}
-        </ul>
-        <ul id="chat-log" class='list-style'>
-            <!-- Messages will be appended here -->
-        </ul>
-    </div>
-    <div class="chat-input">
-        <input id="chat-message-input" type="text" placeholder="Type a message...">
-        <button id="chat-message-submit">Send</button>
-    </div>
-</div>
+
+
+
+
 
 <script>
 const username = "{{ username }}";
@@ -222,6 +241,9 @@ document.querySelector('#chat-message-submit').onclick = function(e) {
 <script>
     function connectSocket() {
         callSocket = new WebSocket('ws://' + window.location.host + '/ws/call/');
+        callSocket.onopen = function(e) {
+            console.log('calling WebSocket connection for call established.');
+        };
         callSocket.onmessage = (e) => {
             let response = JSON.parse(e.data);
             let type = response.type;
@@ -236,9 +258,6 @@ document.querySelector('#chat-message-submit').onclick = function(e) {
             } else if (type === 'call_ended') {
                 onCallEnded();
             }
-        };
-        callSocket.onopen = function(e) {
-            console.log('calling WebSocket connection for call established.');
         };
     }
 
@@ -302,6 +321,7 @@ document.querySelector('#chat-message-submit').onclick = function(e) {
             }
         }));
         onCallEnded();
+        toggleCallButtonVisibility(false);
     }
 
     function onCallEnded() {
@@ -320,6 +340,8 @@ document.querySelector('#chat-message-submit').onclick = function(e) {
         document.getElementById("calling").style.display = "none";
         document.getElementById("videos").style.display = "none";
         document.getElementById("call").style.display = "block";
+
+        toggleCallButtonVisibility(false);
     }
 
     let pcConfig = {
@@ -422,18 +444,40 @@ document.querySelector('#chat-message-submit').onclick = function(e) {
     }
 
     function initiateCall() {
-        beReady().then(() => processCall(otherUser));
-    }
+    beReady().then(() => {
+        processCall(otherUser);
+        toggleCallButtonVisibility(true);
+    });
+}
 
-    function answer() {
-        beReady().then(() => processAccept());
-    }
+function answer() {
+    beReady().then(() => {
+        processAccept();
+        toggleCallButtonVisibility(true); 
+    });
+}
 
     function callProgress() {
         document.getElementById("inCall").style.display = "block";
         document.getElementById("videos").style.display = "block";
-        document.getElementById("answer").style.display = "none"; // Hide answer button
+        document.getElementById("answer").style.display = "none"; 
     }
+
+    function toggleCallButtonVisibility(callInProgress) {
+        const callButton = document.querySelector('.dialActionButton');
+
+        if (callInProgress) {
+            callButton.style.display = 'none'; 
+        } else {
+            callButton.style.display = 'block'; 
+        }
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        toggleCallButtonVisibility(false); 
+    });
 
     // Connect the WebSocket immediately when the script runs
     connectSocket();
