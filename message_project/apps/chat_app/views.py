@@ -115,6 +115,19 @@ def manage_group(request, group_name):
             remove_member = User.objects.get(username=remove_member_username)
             group.members.remove(remove_member)
             messages.success(request, f'{remove_member_username} removed from the group.')
+            
+            if remove_member == group.creator:
+                remaining_members = group.members.exclude(pk=remove_member.pk)
+                if remaining_members.exists():
+                    new_creator = remaining_members.first()
+                    group.creator = new_creator
+                    group.save()
+                    messages.success(request, f'{new_creator.username} is now the new group creator.')
+                else:
+                    group.delete()
+                    messages.success(request, 'Group deleted as there are no members left.')
+                    return redirect('dashboard')
+
         elif 'delete_group' in request.POST:
             group.delete()
             messages.success(request, 'Group deleted successfully.')

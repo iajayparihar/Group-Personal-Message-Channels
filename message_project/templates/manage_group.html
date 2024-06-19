@@ -96,12 +96,6 @@ Manage Group - {{ group.name }}
             color: white;
         }
 
-        .messages p {
-            background-color: #ffdddd;
-            padding: 10px;
-            border-left: 6px solid #f44336;
-            margin-bottom: 10px;
-        }
     </style>
         
     <div class="container">
@@ -135,9 +129,11 @@ Manage Group - {{ group.name }}
             <button type="submit" class="btn btn-outline-danger" name="delete_group">Delete Group</button>
         </form>
 
-        <div class="messages">
+        <div >
             {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
                 <p>{{ message }}</p>
+            </div>
             {% endfor %}
         </div>
     </div>
