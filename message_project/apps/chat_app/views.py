@@ -29,6 +29,11 @@ def personal_chat(request, friend_username):
         Q(sender=request.user, receiver=friend) | Q(sender=friend, receiver=request.user)
     ).order_by('timestamp')
     
+    obj = PersonalMessage.objects.filter(sender=friend, receiver=request.user,seen=False)
+    for i in obj:
+        i.seen = True
+        i.save()
+
     return render(request, 'personal_chat.html', {
         'username': request.user.username,
         'friend_username': friend.username,
@@ -73,11 +78,13 @@ def user_register(request):
 def dashboard(request):
     user_groups = request.user.chat_groups.all()
     users = User.objects.exclude(username=request.user.username)
-    
+    unread_msg = PersonalMessage.objects.filter(seen=False)
+    print(unread_msg)
     return render(request, 'dashboard.html', {
         'username': request.user.username,
         'groups': user_groups,
         'users': users,
+        'unread_msg' : unread_msg,
     })
 
 @login_required

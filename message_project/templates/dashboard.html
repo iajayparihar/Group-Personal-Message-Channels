@@ -6,26 +6,64 @@ Dashboard
 {% block body %}
     
 <div class="container">
-    <h2 class="mt-3">Welcome, {{ username }}</h2>
-    <h3 class="mt-4">Your Groups</h3>
-    <ul class="list-group">
-            {% for group in groups %}
-                <li class="list-group-item">
-                    <a href="{% url 'group_chat' group.name %}">{{ group.name }}</a>
-                    {% if group.creator == request.user %}
-                    (<a href="{% url 'manage_group' group.name %}"> Manage </a>)
-                    {% endif %}
-                </li>
-                    {% endfor %}
-    </ul>
-                    
-    <h3 class="mt-4">Users</h3>
-    <ul class="list-group">
-        {% for user in users %}
-        <li class="list-group-item">
-            <a href="{% url 'personal_chat' user.username %}">{{ user.username }}</a>
-        </li>
-        {% endfor %}
-    </ul>
+<div class="row">
+    <div class="col-6">
+        <h2 class="mt-3">Welcome, {{ username }}</h2>
+        <h3 class="mt-4">Your Groups</h3>
+        <ul class="list-group">
+                {% for group in groups %}
+                    <li class="list-group-item">
+                        <a href="{% url 'group_chat' group.name %}">{{ group.name }}</a>
+                        {% if group.creator == request.user %}
+                        (<a href="{% url 'manage_group' group.name %}"> Manage </a>)
+                        {% endif %}
+                    </li>
+                        {% endfor %}
+        </ul>
+                        
+        <h3 class="mt-4">Users</h3>
+        <ul class="list-group">
+            {% for user in users %}
+            <li class="list-group-item">
+                <a href="{% url 'personal_chat' user.username %}">{{ user.username }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-6">
+        
+        <h1>Unread Messages</h1>
+        
+        {% if unread_msg %}
+            {% for i in unread_msg %}
+        
+                {% if request.user == i.receiver %}
+                sender : {{i.sender}} ||
+                receiver : {{i.receiver}} ||
+                msg : {{i.content}} ||
+                seen : {{i.seen}}
+                <br>
+                {% endif %}
+            
+            {% endfor %}
+        
+        {% else %}
+        
+        <p>No new Messages</p>
+        
+        {% endif %}
+            
+        
+            
+    </div>
 </div>
+</div>
+
+<script>
+// setTimeout(function(){
+//   window.location.reload();
+// }, 1000);
+
+
+</script>
 {% endblock body %}

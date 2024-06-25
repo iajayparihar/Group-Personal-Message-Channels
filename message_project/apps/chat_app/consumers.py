@@ -59,7 +59,7 @@ class PersonalChatConsumer(ChatConsumerMixin, AsyncWebsocketConsumer):
         # Sort usernames to ensure a consistent room name
         usernames = sorted([self.user.username, self.friend_username])
         self.room_name = f'personal_{usernames[0]}_{usernames[1]}'
-        
+
         await super().connect()
 
     @database_sync_to_async
@@ -67,11 +67,6 @@ class PersonalChatConsumer(ChatConsumerMixin, AsyncWebsocketConsumer):
         sender = User.objects.select_related().get(username=sender_username)
         receiver = User.objects.select_related().get(username=self.friend_username)
         PersonalMessage.objects.create(sender=sender, receiver=receiver, content=message)
-
-
-
-
-
 
 
 # videocall/consumers.py

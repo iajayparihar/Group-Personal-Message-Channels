@@ -19,4 +19,4 @@ class GroupMessageAdmin(admin.ModelAdmin):
 class PersonalMessageAdmin(admin.ModelAdmin):
     '''Admin View for PersonalMessage'''
 
-    list_display = ('receiver', 'sender', 'content')
+    list_display = ('receiver', 'sender', 'content','seen')
