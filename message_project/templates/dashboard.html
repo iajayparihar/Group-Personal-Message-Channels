@@ -10,7 +10,8 @@ Dashboard
     <div class="col-6">
         <h2 class="mt-3">Welcome, {{ username }}</h2>
         <h3 class="mt-4">Your Groups</h3>
-        <ul class="list-group">
+        {% if groups %}
+            <ul class="list-group">
                 {% for group in groups %}
                     <li class="list-group-item">
                         <a href="{% url 'group_chat' group.name %}">{{ group.name }}</a>
@@ -19,7 +20,11 @@ Dashboard
                         {% endif %}
                     </li>
                         {% endfor %}
-        </ul>
+            </ul>
+            {% else %}
+            <strong> * Please join or create a group.</strong>    
+            {% endif %}
+                
                         
         <h3 class="mt-4">Users</h3>
         <ul class="list-group">
@@ -31,39 +36,28 @@ Dashboard
         </ul>
     </div>
     <div class="col-6">
-        
-        <h1>Unread Messages</h1>
-        
+        <br>
+        <h1>Notification</h1>
+        <hr>
         {% if unread_msg %}
-            {% for i in unread_msg %}
-        
-                {% if request.user == i.receiver %}
-                sender : {{i.sender}} ||
-                receiver : {{i.receiver}} ||
-                msg : {{i.content}} ||
-                seen : {{i.seen}}
-                <br>
+            {% for msg in unread_msg %}
+                {% if request.user == msg.receiver %}
+                    <div>
+                        <p><strong>Message from:</strong> {{ msg.sender }} : {{ msg.content }}</p>
+                    </div>
+                {% elif request.user == msg.sender %}
+                    <div>
+                        <p><strong>{{ msg.receiver }}:</strong> Messages not seen yet!</p>
+                    </div>
                 {% endif %}
-            
             {% endfor %}
-        
         {% else %}
-        
-        <p>No new Messages</p>
-        
+            <p>No new Messages</p>
         {% endif %}
-            
         
             
     </div>
 </div>
 </div>
 
-<script>
-// setTimeout(function(){
-//   window.location.reload();
-// }, 1000);
-
-
-</script>
 {% endblock body %}
