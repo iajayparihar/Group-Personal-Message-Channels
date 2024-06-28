@@ -79,7 +79,19 @@ def dashboard(request):
     user_groups = request.user.chat_groups.all()
     users = User.objects.exclude(username=request.user.username)
     unread_msg = PersonalMessage.objects.filter(seen=False)
-    print(unread_msg)
+
+    user_unread_counts = {}
+    for msg in unread_msg:
+        sender = msg.sender
+        if sender.username not in user_unread_counts:
+            user_unread_counts[sender.username] = 0
+        user_unread_counts[sender.username] += 1
+
+    for user in users:
+        user.count = 0
+        if user.username in user_unread_counts:
+            user.count += user_unread_counts[user.username]
+
     return render(request, 'dashboard.html', {
         'username': request.user.username,
         'groups': user_groups,

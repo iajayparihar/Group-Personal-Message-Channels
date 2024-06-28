@@ -31,3 +31,6 @@ class PersonalMessage(BaseMessage):
     receiver = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
     class Meta:
         app_label = 'chat_app'
+
+    def __str__(self):
+        return f"{self.sender=} : {self.receiver=} "

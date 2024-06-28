@@ -29,13 +29,18 @@ Dashboard
         <h3 class="mt-4">Users</h3>
         <ul class="list-group">
             {% for user in users %}
-            <li class="list-group-item">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
                 <a href="{% url 'personal_chat' user.username %}">{{ user.username }}</a>
+                
+                {% if user.count != 0  %}
+                <span class="badge bg-warning rounded-pill">{{ user.count }}</span>
+                {% endif %}
+                    
             </li>
             {% endfor %}
         </ul>
     </div>
-    <div class="col-6">
+    <!-- <div class="col-6">
         <br>
         <h1>Notification</h1>
         <hr>
@@ -44,6 +49,8 @@ Dashboard
                 {% if request.user == msg.receiver %}
                     <div>
                         <p><strong>Message from:</strong> {{ msg.sender }} : {{ msg.content }}</p>
+                        <small>{{msg.timestamp}}</smaLL>
+                        <hr>
                     </div>
                 {% elif request.user == msg.sender %}
                     <div>
@@ -56,7 +63,7 @@ Dashboard
         {% endif %}
         
             
-    </div>
+    </div> -->
 </div>
 </div>
 
